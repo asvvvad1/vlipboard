@@ -18,21 +18,16 @@ mut:
 // new creates a new Vlipboard instance
 pub fn new() ?&Vlipboard {
 	// Clipboard.copy() wont work linux unless it's primary
-	clip := if os.user_os() == 'linux' {
-		clipboard.new_primary()
-	} else {
-		clipboard.new()
-	}
-
+	clip := if os.user_os() == 'linux' { clipboard.new_primary() } else { clipboard.new() }
 	if os.getenv('WAYLAND_DISPLAY') != '' {
-		if !(exists_in_path('wl-copy') && exists_in_path('wl-paste')) {
+		if !(os.exists_in_system_path('wl-copy') && os.exists_in_system_path('wl-paste')) {
 			return error('Clipboard wont work on Wayland unless you install wl-clipboard')
 		}
 		return &Vlipboard{
 			method: 1
 			clip: clip
 		}
-	} else if exists_in_path('termux-clipboard-set') && exists_in_path('termux-clipboard-get') {
+	} else if os.exists_in_system_path('termux-clipboard-set') && os.exists_in_system_path('termux-clipboard-get') {
 		return &Vlipboard{
 			method: 2
 			clip: clip
@@ -97,12 +92,4 @@ pub fn (mut vb Vlipboard) clear() bool {
 		}
 		else {}
 	}
-}
-
-// exists_in_path returns true if the function exists in the system's 
-fn exists_in_path(prog string) bool {
-	os.find_abs_path_of_executable(prog) or {
-		return false
-	}
-	return true
 }
