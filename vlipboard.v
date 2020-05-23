@@ -68,9 +68,15 @@ pub fn new() ?&Vlipboard {
 // copy text into the clipboard
 pub fn (mut vb Vlipboard) copy(text string) bool {
 	match vb.method {
-		0 { return vb.clip.copy(text) }
-		1 { return os.system('wl-copy $text') == 0 }
-		2 { return os.system('termux-clipboard-set $text') == 0 }
+		0 {
+			return vb.clip.copy(text)
+		}
+		1 {
+			return os.system('wl-copy $text') == 0
+		}
+		2 {
+			return os.system('termux-clipboard-set $text') == 0
+		}
 		3 {
 			file := os.open('/dev/snarf') or {
 				return false
@@ -110,7 +116,6 @@ pub fn (mut vb Vlipboard) paste() string {
 			result := os.read_file('/dev/snarf') or {
 				return ''
 			}
-
 			return result
 		}
 		4 {
@@ -136,6 +141,8 @@ pub fn (mut vb Vlipboard) clear() bool {
 			vb.clip.clear_all()
 			return true
 		}
-		else { vb.copy('') }
+		else {
+			vb.copy('')
+		}
 	}
 }
