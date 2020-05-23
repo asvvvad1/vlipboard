@@ -1,7 +1,5 @@
 module vlipboard
 
-import os
-
 fn test_vlipboard() {
 	clip := new() or {
 		panic(err)

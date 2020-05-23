@@ -8,6 +8,9 @@ Vlipboard methods:
 	0: standard
 	1: wayland
 	2: termux
+	3: plan9
+	4: clip
+	5: xsel
 */
 struct Vlipboard {
 mut:
@@ -32,9 +35,28 @@ pub fn new() ?&Vlipboard {
 			method: 2
 			clip: clip
 		}
+	} else if os.exists('/dev/snarf') {
+		// Plan 9 from Bell Labs
+		return &Vlipboard{
+			method: 3
+			clip: clip
+		}
 	} else {
+		// if default clipboard library isn't available fall back to xclip or xsel
 		if clip.is_available() != true {
-			return error('Clipboard is not supported')
+			if os.exists_in_system_path('xclip') {
+				return &Vlipboard{
+					method: 4
+					clip: clip
+				}
+			} else if os.exists_in_system_path('xsel') {
+				return &Vlipboard{
+					method: 5
+					clip: clip
+				}
+			} else {
+				return error('Clipboard is not supported')
+			}
 		}
 		return &Vlipboard{
 			clip: clip
@@ -49,6 +71,19 @@ pub fn (mut vb Vlipboard) copy(text string) bool {
 		0 { return vb.clip.copy(text) }
 		1 { return os.system('wl-copy $text') == 0 }
 		2 { return os.system('termux-clipboard-set $text') == 0 }
+		3 {
+			file := os.open('/dev/snarf') or {
+				return false
+			}
+			file.write(text)
+			return true
+		}
+		4 {
+			return os.system('xclip -in -selection clipboard <<< "$text"') == 0
+		}
+		5 {
+			return os.system('xsel --input --clipboard <<< "$text"') == 0
+		}
 		else {}
 	}
 }
@@ -71,6 +106,25 @@ pub fn (mut vb Vlipboard) paste() string {
 			}
 			return result.output
 		}
+		3 {
+			result := os.read_file('/dev/snarf') or {
+				return ''
+			}
+
+			return result
+		}
+		4 {
+			result := os.exec('xclip -out -selection clipboard') or {
+				return ''
+			}
+			return result.output
+		}
+		5 {
+			result := os.exec('xsel --output --clipboard') or {
+				return ''
+			}
+			return result.output
+		}
 		else {}
 	}
 }
@@ -82,14 +136,6 @@ pub fn (mut vb Vlipboard) clear() bool {
 			vb.clip.clear_all()
 			return true
 		}
-		1 {
-			os.system('wl-copy ""')
-			return true
-		}
-		2 {
-			os.system('termux-clipboard-set ""')
-			return true
-		}
-		else {}
+		else { vb.copy('') }
 	}
 }
