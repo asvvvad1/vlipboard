@@ -78,7 +78,7 @@ pub fn (mut vb Vlipboard) copy(text string) bool {
 			return os.system('termux-clipboard-set $text') == 0
 		}
 		3 {
-			file := os.open('/dev/snarf') or {
+			mut file := os.open('/dev/snarf') or {
 				return false
 			}
 			file.write(text)
