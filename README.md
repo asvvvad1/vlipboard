@@ -11,17 +11,18 @@ It's meant to be easier to use and simple. Contributions welcome!
 
 # Usage:
 ```v
-import asvvvad/vlipboard
+import asvvvad.vlipboard
 
-clip := new() or {
-  panic(err)
-}
+fn main() {
+	mut clip := vlipboard.new() or {
+	  panic(err)
+	}
 
-text := 'Hello, world!'
-clip.copy(text) // copy() returns true on success
-print(clip.paste()) // 'Hello, world!'
-clip.clear() // clear() returns true on success
-print(clip.paste().len <= 0) // true
+	text := 'Hello, world!'
+	clip.copy(text) // copy() returns true on success
+	println(clip.paste()) // 'Hello, world!'
+	clip.clear() // clear() returns true on success
+	println(clip.paste().len <= 0) // true
 }
 ```
 That's it! :3
