@@ -3,15 +3,6 @@ module vlipboard
 import clipboard
 import os
 
-/*
-Vlipboard methods:
-	0: standard
-	1: wayland
-	2: termux
-	3: plan9
-	4: clip
-	5: xsel
-*/
 struct Vlipboard {
 mut:
 	method int
@@ -21,7 +12,7 @@ mut:
 // new creates a new Vlipboard instance
 pub fn new() ?&Vlipboard {
 	// Clipboard.copy() wont work linux unless it's primary
-	clip := if os.user_os() == 'linux' { clipboard.new_primary() } else { clipboard.new() }
+	mut clip := if os.user_os() == 'linux' { clipboard.new_primary() } else { clipboard.new() }
 	if os.getenv('WAYLAND_DISPLAY') != '' {
 		if !(os.exists_in_system_path('wl-copy') && os.exists_in_system_path('wl-paste')) {
 			return error('Clipboard wont work on Wayland unless you install wl-clipboard')
@@ -90,7 +81,9 @@ pub fn (mut vb Vlipboard) copy(text string) bool {
 		5 {
 			return os.system('xsel --input --clipboard <<< "$text"') == 0
 		}
-		else {}
+		else {
+			return false
+		}
 	}
 }
 
@@ -130,7 +123,9 @@ pub fn (mut vb Vlipboard) paste() string {
 			}
 			return result.output
 		}
-		else {}
+		else {
+			return ''
+		}
 	}
 }
 
@@ -143,6 +138,7 @@ pub fn (mut vb Vlipboard) clear() bool {
 		}
 		else {
 			vb.copy('')
+			return true
 		}
 	}
 }
